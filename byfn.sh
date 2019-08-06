@@ -41,6 +41,7 @@ function printHelp() {
   echo "      - 'down' - clear the network with docker-compose down"
   echo "      - 'restart' - restart the network"
   echo "      - 'generate' - generate required certificates and genesis block"
+  echo "      - 'generateCA' - generate required certificates and genesis block use fabric-ca-server"
   echo "      - 'upgrade'  - upgrade the network from version 1.3.x to 1.4.0"
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
   echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10)"
@@ -67,6 +68,7 @@ function printHelp() {
   echo
   echo "Taking all defaults:"
   echo "	byfn.sh generate"
+  echo "	byfn.sh generateCA"
   echo "	byfn.sh up"
   echo "	byfn.sh down"
 }
@@ -156,11 +158,9 @@ function networkUp() {
   if [ ! -d "crypto-config" ]; then
     generateCerts
     replacePrivateKey
-   
+    generateChannelArtifacts
   fi
   
-  generateChannelArtifacts
-
   COMPOSE_FILES="-f ${COMPOSE_FILE}"
   if [ "${CERTIFICATE_AUTHORITIES}" == "true" ]; then
     COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_CA}"
@@ -290,7 +290,7 @@ function networkDown() {
     #Cleanup images
     removeUnwantedImages
     # remove orderer block and other channel configuration transactions and certs
-    rm -rf channel-artifacts/*.block channel-artifacts/*.tx ./org3-artifacts/crypto-config/ channel-artifacts/org3.json #crypto-config
+    rm -rf channel-artifacts/*.block channel-artifacts/*.tx ./org3-artifacts/crypto-config/ channel-artifacts/org3.json crypto-config fabric-ca-files ca
     # remove the docker-compose yaml file that was customized to the example
     rm -f docker-compose-e2e.yaml
   fi
@@ -483,6 +483,12 @@ function generateChannelArtifacts() {
   echo
 }
 
+# 使用 fabric-ca-server 生成 crypto-config
+function generateUseCAServer(){
+  docker-compose -f docker-caserver.yaml up -d
+  bash scripts/getca.sh 
+}
+
 # Obtain the OS and Architecture string that will be used to select the correct
 # native binaries for your platform, e.g., darwin-amd64 or linux-amd64
 OS_ARCH=$(echo "$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
@@ -598,6 +604,9 @@ elif [ "${MODE}" == "down" ]; then ## Clear the network
 elif [ "${MODE}" == "generate" ]; then ## Generate Artifacts
   generateCerts
   replacePrivateKey
+  generateChannelArtifacts
+elif [ "${MODE}" == "generateCA" ]; then ## Generate Artifacts
+  generateUseCAServer
   generateChannelArtifacts
 elif [ "${MODE}" == "restart" ]; then ## Restart the network
   networkDown

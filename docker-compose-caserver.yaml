@@ -1,0 +1,124 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+networks:
+  basic-ca:
+
+services:
+  # Orderer 节点的 CA 服务端
+  ca.example.com:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    container_name: ca.example.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/ca.example.com
+      - FABRIC_CA_SERVER_CA_NAME=ca.example.com
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+    command: sh -c 'fabric-ca-server start -b admin:adminpw -p 7054 --csr.cn ca.example.com --csr.hosts ca.example.com --cfg.affiliations.allowremove  --cfg.identities.allowremove' 
+    volumes:
+      - ./ca/ordererCA:/etc/hyperledger/ca.example.com
+    ports:
+      - "7054:7054"
+    networks:
+      - basic-ca
+      
+  # Org1 组织1 的 CA 服务端
+  ca.org1.example.com:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    container_name: ca.org1.example.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/ca.org1.example.com
+      - FABRIC_CA_SERVER_CA_NAME=ca.org1.example.com
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+    command: sh -c 'fabric-ca-server start -b admin:adminpw -p 7055 --csr.cn ca.org1.example.com --csr.hosts ca.org1.example.com --cfg.affiliations.allowremove  --cfg.identities.allowremove'
+    volumes:
+      - ./ca/org1CA:/etc/hyperledger/ca.org1.example.com
+    ports:
+      - "7055:7055"
+    networks:
+      - basic-ca
+  
+  # Org2 组织2 的 CA 服务端
+  ca.org2.example.com:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    container_name: ca.org2.example.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/ca.org2.example.com
+      - FABRIC_CA_SERVER_CA_NAME=ca.org2.example.com
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+    command: sh -c 'fabric-ca-server start -b admin:adminpw -p 7056 --csr.cn ca.org2.example.com --csr.hosts ca.org2.example.com --cfg.affiliations.allowremove  --cfg.identities.allowremove'
+    volumes:
+      - ./ca/org2CA:/etc/hyperledger/ca.org2.example.com
+    ports:
+      - "7056:7056"
+    networks:
+      - basic-ca
+
+  # TLS 的 CA 服务端
+  tlsca.example.com:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    container_name: tlsca.example.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/tlsca.example.com
+      - FABRIC_CA_SERVER_CA_NAME=tlsca.example.com
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+    command: sh -c 'fabric-ca-server start -b admin:adminpw -p 7057 --csr.cn tlsca.example.com --csr.hosts tlsca.example.com --cfg.affiliations.allowremove  --cfg.identities.allowremove'
+    volumes:
+      - ./ca/tlsCA:/etc/hyperledger/tlsca.example.com
+    ports:
+      - "7057:7057"
+    networks:
+      - basic-ca
+
+  # Org1 组织1 的 TLS 的 CA 服务端
+  tlsca.org1.example.com:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    container_name: tlsca.org1.example.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/tlsca.org1.example.com
+      - FABRIC_CA_SERVER_CA_NAME=tlsca.org1.example.com
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+    command: sh -c 'fabric-ca-server start -b admin:adminpw -p 7058 --csr.cn tlsca.org1.example.com --csr.hosts tlsca.org1.example.com --cfg.affiliations.allowremove  --cfg.identities.allowremove'
+    volumes:
+      - ./ca/tlsorg1CA:/etc/hyperledger/tlsca.org1.example.com
+    ports:
+      - "7058:7058"
+    networks:
+      - basic-ca
+
+  # Org2 组织2 的 TLS 的 CA 服务端
+  tlsca.org2.example.com:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    container_name: tlsca.org2.example.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/tlsca.org2.example.com
+      - FABRIC_CA_SERVER_CA_NAME=tlsca.org2.example.com
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+    command: sh -c 'fabric-ca-server start -b admin:adminpw  -p 7059 --csr.cn tlsca.org2.example.com --csr.hosts tlsca.org2.example.com  --cfg.affiliations.allowremove  --cfg.identities.allowremove'
+    volumes:
+      - ./ca/tlsorg2CA:/etc/hyperledger/tlsca.org2.example.com
+    ports:
+      - "7059:7059"
+    networks:
+      - basic-ca
+
+  # 中间 CA
+  # middle.example.com:
+  #   image: hyperledger/fabric-ca:$IMAGE_TAG
+  #   container_name: middle.example.com
+  #   environment:
+  #     - FABRIC_CA_HOME=/etc/hyperledger/middle.example.com
+  #     - FABRIC_CA_SERVER_CA_NAME=middle.example.com
+  #     - FABRIC_CA_SERVER_TLS_ENABLED=false
+  #   command: sh -c 'fabric-ca-server start -b admin:adminpw -u http://admin:adminpw@root.example.com:7054 -p 7055 --cfg.affiliations.allowremove  --cfg.identities.allowremove'
+  #   volumes:
+  #     - ./ca/middleCA:/etc/hyperledger/middle.example.com
+  #   ports:
+  #     - "7055:7055"
+  #   depends_on:
+  #     - rootca.example.com
+  #   networks:
+  #     - basic-ca
