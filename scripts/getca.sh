@@ -22,7 +22,7 @@ URLtlsorg2=localhost:7059
 
 # scripts 目录上一级目录
 SDIR=$(
-	cd ../"$(dirname "$0")"
+	# cd  "$(dirname "$0")"
 	pwd
 )
 
@@ -30,7 +30,6 @@ SDIR=$(
 CA_DIR=$SDIR/fabric-ca-files
 ORDERER_DIR=$SDIR/crypto-config/ordererOrganizations
 PEER_DIR=$SDIR/crypto-config/peerOrganizations
-
 
 # Copy the org's admin cert into some target MSP directory
 # This is only required if ADMINCERTS is enabled.

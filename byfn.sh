@@ -278,7 +278,7 @@ function upgradeNetwork() {
 function networkDown() {
   # stop org3 containers also in addition to org1 and org2, in case we were running sample to add org3
   # stop kafka and zookeeper containers in case we're running with kafka consensus-type
-  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_CA -f $COMPOSE_FILE_ORG3 down --volumes --remove-orphans
+  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_CA -f $COMPOSE_FILE_CASERVER -f $COMPOSE_FILE_ORG3 down --volumes --remove-orphans
 
   # Don't remove the generated artifacts -- note, the ledgers are always removed
   if [ "$MODE" != "restart" ]; then
@@ -485,7 +485,7 @@ function generateChannelArtifacts() {
 
 # 使用 fabric-ca-server 生成 crypto-config
 function generateUseCAServer(){
-  docker-compose -f docker-caserver.yaml up -d
+  docker-compose -f $COMPOSE_FILE_CASERVER up -d
   bash scripts/getca.sh 
 }
 
@@ -513,6 +513,8 @@ COMPOSE_FILE_KAFKA=docker-compose-kafka.yaml
 COMPOSE_FILE_RAFT2=docker-compose-etcdraft2.yaml
 # certificate authorities compose file
 COMPOSE_FILE_CA=docker-compose-ca.yaml
+# Generate Artifacts use fabric-ca-server 
+COMPOSE_FILE_CASERVER=docker-compose-caserver.yaml
 #
 # use golang as the default language for chaincode
 LANGUAGE=golang
@@ -535,6 +537,8 @@ elif [ "$MODE" == "restart" ]; then
   EXPMODE="Restarting"
 elif [ "$MODE" == "generate" ]; then
   EXPMODE="Generating certs and genesis block"
+elif [ "$MODE" == "generateCA" ]; then
+  EXPMODE="Generating certs and genesis block use fabric-ca-server"
 elif [ "$MODE" == "upgrade" ]; then
   EXPMODE="Upgrading the network"
 else
@@ -605,7 +609,7 @@ elif [ "${MODE}" == "generate" ]; then ## Generate Artifacts
   generateCerts
   replacePrivateKey
   generateChannelArtifacts
-elif [ "${MODE}" == "generateCA" ]; then ## Generate Artifacts
+elif [ "${MODE}" == "generateCA" ]; then ## Generate Artifacts use fabric-ca-server
   generateUseCAServer
   generateChannelArtifacts
 elif [ "${MODE}" == "restart" ]; then ## Restart the network
